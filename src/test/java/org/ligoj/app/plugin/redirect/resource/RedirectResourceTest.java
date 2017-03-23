@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 
 import javax.transaction.Transactional;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -15,6 +16,7 @@ import org.ligoj.bootstrap.dao.system.SystemUserSettingRepository;
 import org.ligoj.bootstrap.model.system.SystemConfiguration;
 import org.ligoj.bootstrap.model.system.SystemUserSetting;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
@@ -113,7 +115,8 @@ public class RedirectResourceTest extends AbstractAppTest {
 		em.clear();
 
 		final Response response = resource.handleRedirect("any");
-		Assert.assertEquals(DEFAULT_USER + "|hash", response.getCookies().get(RedirectResource.PREFERRED_COOKIE_HASH).getValue());
+		Assert.assertEquals(DEFAULT_USER + "|hash",
+				response.getCookies().get(RedirectResource.PREFERRED_COOKIE_HASH).getValue());
 		Assert.assertEquals("http://localhost:1/any", response.getHeaderString("location"));
 	}
 
@@ -133,13 +136,16 @@ public class RedirectResourceTest extends AbstractAppTest {
 		em.clear();
 
 		final Response response = resource.handleRedirect(null);
-		Assert.assertEquals(DEFAULT_USER + "|hash", response.getCookies().get(RedirectResource.PREFERRED_COOKIE_HASH).getValue());
+		Assert.assertEquals(DEFAULT_USER + "|hash",
+				response.getCookies().get(RedirectResource.PREFERRED_COOKIE_HASH).getValue());
 		Assert.assertEquals("http://localhost:1/any", response.getHeaderString("location"));
 	}
 
 	@Test
 	public void buildCookieResponseNoHash() {
-		final Response response = resource.buildCookieResponse("any").build();
+		final ResponseBuilder rb = Response.noContent();
+		resource.accept(rb, new UsernamePasswordAuthenticationToken("any", "n/a"));
+		final Response response = rb.build();
 		Assert.assertNull(response.getCookies().get(RedirectResource.PREFERRED_COOKIE_HASH));
 		Assert.assertNull(response.getHeaderString("location"));
 	}
@@ -152,7 +158,10 @@ public class RedirectResourceTest extends AbstractAppTest {
 		setting.setValue("hash");
 		userSettingRepository.save(setting);
 
-		final Response response = resource.buildCookieResponse(DEFAULT_USER).build();
+		final ResponseBuilder rb = Response.noContent();
+		resource.accept(rb, new UsernamePasswordAuthenticationToken(DEFAULT_USER, "n/a"));
+		final Response response = rb.build();
+
 		Assert.assertEquals("junit|hash", response.getCookies().get(RedirectResource.PREFERRED_COOKIE_HASH).getValue());
 		Assert.assertNull(response.getHeaderString("location"));
 	}
@@ -210,7 +219,8 @@ public class RedirectResourceTest extends AbstractAppTest {
 		Assert.assertEquals("http://localhost:1/any", response.getHeaderString("location"));
 
 		// Change URL
-		userSettingRepository.findByLoginAndName(DEFAULT_USER, RedirectResource.PREFERRED_URL).setValue("http://localhost:2/any");
+		userSettingRepository.findByLoginAndName(DEFAULT_USER, RedirectResource.PREFERRED_URL)
+				.setValue("http://localhost:2/any");
 		em.flush();
 		em.clear();
 
@@ -220,7 +230,8 @@ public class RedirectResourceTest extends AbstractAppTest {
 
 		// Change hash
 		userSettingRepository.findByLoginAndName(DEFAULT_USER, RedirectResource.PREFERRED_HASH).setValue("new-hash");
-		userSettingRepository.findByLoginAndName(DEFAULT_USER, RedirectResource.PREFERRED_URL).setValue("http://localhost:2/any");
+		userSettingRepository.findByLoginAndName(DEFAULT_USER, RedirectResource.PREFERRED_URL)
+				.setValue("http://localhost:2/any");
 		em.flush();
 		em.clear();
 		response = resource.handleRedirect(cookieValue);
@@ -230,7 +241,8 @@ public class RedirectResourceTest extends AbstractAppTest {
 		// Login
 		initSpringSecurityContext(DEFAULT_USER);
 		response = resource.handleRedirect(null);
-		Assert.assertEquals(DEFAULT_USER + "|new-hash", response.getCookies().get(RedirectResource.PREFERRED_COOKIE_HASH).getValue());
+		Assert.assertEquals(DEFAULT_USER + "|new-hash",
+				response.getCookies().get(RedirectResource.PREFERRED_COOKIE_HASH).getValue());
 		Assert.assertEquals("http://localhost:2/any", response.getHeaderString("location"));
 	}
 
@@ -259,7 +271,8 @@ public class RedirectResourceTest extends AbstractAppTest {
 		response = resource.handleRedirect(null);
 		em.flush();
 		em.clear();
-		Assert.assertEquals(DEFAULT_USER + "|hash", response.getCookies().get(RedirectResource.PREFERRED_COOKIE_HASH).getValue());
+		Assert.assertEquals(DEFAULT_USER + "|hash",
+				response.getCookies().get(RedirectResource.PREFERRED_COOKIE_HASH).getValue());
 		Assert.assertEquals("http://localhost:2/any", response.getHeaderString("location"));
 	}
 
@@ -268,4 +281,5 @@ public class RedirectResourceTest extends AbstractAppTest {
 		Assert.assertNull(response.getCookies().get(RedirectResource.PREFERRED_COOKIE_HASH));
 		Assert.assertNull(response.getHeaderString("location"));
 	}
+
 }

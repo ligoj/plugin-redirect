@@ -20,6 +20,7 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.ligoj.app.api.IAuthenticationContributor;
 import org.ligoj.app.plugin.id.resource.CompanyResource;
 import org.ligoj.bootstrap.core.security.SecurityHelper;
 import org.ligoj.bootstrap.dao.system.SystemUserSettingRepository;
@@ -27,20 +28,21 @@ import org.ligoj.bootstrap.model.system.SystemUserSetting;
 import org.ligoj.bootstrap.resource.system.configuration.ConfigurationResource;
 import org.ligoj.bootstrap.resource.system.user.UserSettingResource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Handle redirect request with a redirect either to login page, either the preferred page
- * of requesting user.<br>
+ * Handle redirect request with a redirect either to login page, either the
+ * preferred page of requesting user.<br>
  */
 @Path("redirect")
 @Service
 @Transactional
 @Slf4j
-public class RedirectResource {
+public class RedirectResource implements IAuthenticationContributor {
 
 	/**
 	 * Max age of cookie.
@@ -69,28 +71,34 @@ public class RedirectResource {
 	public static final String PREFERRED_COOKIE_HASH = "saas-preferred-hash";
 
 	/**
-	 * Handle redirect request using cookie (checked, and updated), and the stored preferred URL.
+	 * Handle redirect request using cookie (checked, and updated), and the
+	 * stored preferred URL.
 	 * 
 	 * @param cookieHash
 	 *            the optional stored cookie URL.
 	 * @return the computed redirect URL.
 	 */
 	@GET
-	public Response handleRedirect(@CookieParam(PREFERRED_COOKIE_HASH) final String cookieHash) throws URISyntaxException {
+	public Response handleRedirect(@CookieParam(PREFERRED_COOKIE_HASH) final String cookieHash)
+			throws URISyntaxException {
 		// Check the user is authenticated or not
 		final String user = securityHelper.getLogin();
 
 		if (isAnonymous(user)) {
-			// Anonymous request, use the cookie hash to retrieve the user's preferred URL
+			// Anonymous request, use the cookie hash to retrieve the user's
+			// preferred URL
 			return redirect(getUrlFromCookie(cookieHash)).build();
 		}
-		// Authenticated user, use preferred URL if defined, and also republish the hash value
+		// Authenticated user, use preferred URL if defined, and also republish
+		// the hash value
 		final Map<String, Object> settings = userSettingResource.findAll(user);
-		return addCookie(redirect((String) settings.get(PREFERRED_URL)), user, (String) settings.get(PREFERRED_HASH)).build();
+		return addCookie(redirect((String) settings.get(PREFERRED_URL)), user, (String) settings.get(PREFERRED_HASH))
+				.build();
 	}
 
 	/**
-	 * Extract the user and the hash from the cookie value, then check the match and retrieve the associated URL.
+	 * Extract the user and the hash from the cookie value, then check the match
+	 * and retrieve the associated URL.
 	 */
 	private String getUrlFromCookie(final String cookieHash) {
 		final String[] cookieData = StringUtils.split(StringUtils.defaultIfBlank(cookieHash, ""), '|');
@@ -105,7 +113,8 @@ public class RedirectResource {
 	}
 
 	/**
-	 * Check the hash for the given user against the stored value from the data base.
+	 * Check the hash for the given user against the stored value from the data
+	 * base.
 	 */
 	private String checkUrl(final String user, final String hashData, final Map<String, Object> settings) {
 		if (settings.containsKey(PREFERRED_HASH)) {
@@ -156,9 +165,10 @@ public class RedirectResource {
 	 * 
 	 * @param login
 	 *            related user.
-	 * @return the {@link Response} including the stored cookie value from the data base.
+	 * @return the {@link Response} including the stored cookie value from the
+	 *         data base.
 	 */
-	public ResponseBuilder buildCookieResponse(final String login) {
+	private ResponseBuilder buildCookieResponse(final String login) {
 		// Return the stored hash as cookie
 		return addCookie(Response.noContent(), login, userSettingResource.findByName(login, PREFERRED_HASH));
 	}
@@ -172,14 +182,15 @@ public class RedirectResource {
 	 *            User login used to match the hash.
 	 * @param hash
 	 *            The cookie value also stored in data base.
-	 * @return the {@link Response} including cookie value. Same object than the original parameter.
+	 * @return the {@link Response} including cookie value. Same object than the
+	 *         original parameter.
 	 */
 	public ResponseBuilder addCookie(final ResponseBuilder response, final String login, final String hash) {
 		if (hash != null) {
 			// There is a preference, add it to a cookie
 			final Date expire = new Date(System.currentTimeMillis() + COOKIE_AGE * DateUtils.MILLIS_PER_SECOND);
-			final NewCookie cookieHash = new NewCookie(PREFERRED_COOKIE_HASH, login + "|" + hash, "/", null, Cookie.DEFAULT_VERSION, null, COOKIE_AGE,
-					expire, true, true);
+			final NewCookie cookieHash = new NewCookie(PREFERRED_COOKIE_HASH, login + "|" + hash, "/", null,
+					Cookie.DEFAULT_VERSION, null, COOKIE_AGE, expire, true, true);
 			response.cookie(cookieHash);
 		}
 		return response;
@@ -190,7 +201,8 @@ public class RedirectResource {
 	 */
 	private ResponseBuilder redirect(final String url) throws URISyntaxException {
 		if (url == null) {
-			// No URL found or guessed from the header, redirect to the home page
+			// No URL found or guessed from the header, redirect to the home
+			// page
 			return redirectToHome();
 		}
 		// Preferred URL has been found, use it and, also update the cookie
@@ -227,5 +239,11 @@ public class RedirectResource {
 	 */
 	private ResponseBuilder redirectToUrl(final String url) throws URISyntaxException {
 		return Response.status(Status.FOUND).location(new URI(url));
+	}
+
+	@Override
+	public void accept(final ResponseBuilder response, final Authentication authentication) {
+		// Also return the redirect cookie preference
+		buildCookieResponse(authentication.getName()).header("X-Real-User", authentication.getName()).build();
 	}
 }
