@@ -62,7 +62,7 @@ public class RedirectResource implements IAuthenticationContributor {
 	private SystemUserSettingRepository repository;
 
 	@Autowired
-	private CompanyResource companyLdapResource;
+	private CompanyResource companyResource;
 
 	public static final String PREFERRED_URL = "preferred-url";
 
@@ -224,7 +224,7 @@ public class RedirectResource implements IAuthenticationContributor {
 		}
 
 		// Guess the company of this user
-		if (companyLdapResource.isUserInternalCommpany()) {
+		if (companyResource.isUserInternalCommpany()) {
 			// Internal user, redirect to the default URL of corporate user
 			return redirectToUrl(configuration.get("redirect.internal.home"));
 		}
