@@ -68,7 +68,7 @@ public class RedirectResource implements IAuthenticationContributor {
 
 	public static final String PREFERRED_HASH = "preferred-hash";
 
-	public static final String PREFERRED_COOKIE_HASH = "saas-preferred-hash";
+	public static final String PREFERRED_COOKIE_HASH = "ligoj-preferred-hash";
 
 	/**
 	 * Handle redirect request using cookie (checked, and updated), and the
