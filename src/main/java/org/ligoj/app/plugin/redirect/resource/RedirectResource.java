@@ -20,7 +20,8 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
-import org.ligoj.app.api.IAuthenticationContributor;
+import org.ligoj.app.api.FeaturePlugin;
+import org.ligoj.app.iam.IAuthenticationContributor;
 import org.ligoj.app.plugin.id.resource.CompanyResource;
 import org.ligoj.bootstrap.core.security.SecurityHelper;
 import org.ligoj.bootstrap.dao.system.SystemUserSettingRepository;
@@ -42,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Transactional
 @Slf4j
-public class RedirectResource implements IAuthenticationContributor {
+public class RedirectResource implements IAuthenticationContributor, FeaturePlugin {
 
 	/**
 	 * Max age of cookie.
@@ -245,5 +246,10 @@ public class RedirectResource implements IAuthenticationContributor {
 	public void accept(final ResponseBuilder response, final Authentication authentication) {
 		// Also return the redirect cookie preference
 		buildCookieResponse(authentication.getName()).header("X-Real-User", authentication.getName()).build();
+	}
+
+	@Override
+	public String getKey() {
+		return "feature:redirect";
 	}
 }
