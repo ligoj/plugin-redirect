@@ -281,5 +281,10 @@ public class RedirectResourceTest extends AbstractAppTest {
 		Assert.assertNull(response.getCookies().get(RedirectResource.PREFERRED_COOKIE_HASH));
 		Assert.assertNull(response.getHeaderString("location"));
 	}
+	
+	@Test
+	public void getKey() {
+		Assert.assertEquals("feature:redirect", resource.getKey());
+	}
 
 }
