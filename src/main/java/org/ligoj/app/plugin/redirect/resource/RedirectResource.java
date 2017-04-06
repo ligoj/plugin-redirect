@@ -63,7 +63,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	private SystemUserSettingRepository repository;
 
 	@Autowired
-	private CompanyResource companyResource;
+	protected CompanyResource companyResource;
 
 	public static final String PREFERRED_URL = "preferred-url";
 
@@ -164,37 +164,39 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	/**
 	 * Return the stored hash as cookie for the current authenticated used.
 	 * 
+	 * @param rb
+	 *            The {@link ResponseBuilder} to complete.
 	 * @param login
 	 *            related user.
-	 * @return the {@link Response} including the stored cookie value from the
-	 *         data base.
+	 * @return the {@link ResponseBuilder} including the stored cookie value
+	 *         from the data base.
 	 */
-	private ResponseBuilder buildCookieResponse(final String login) {
+	private ResponseBuilder buildCookieResponse(final ResponseBuilder rb, final String login) {
 		// Return the stored hash as cookie
-		return addCookie(Response.noContent(), login, userSettingResource.findByName(login, PREFERRED_HASH));
+		return addCookie(rb, login, userSettingResource.findByName(login, PREFERRED_HASH));
 	}
 
 	/**
 	 * Return the generated hash as cookie
 	 * 
-	 * @param response
-	 *            The current {@link Response} to update.
+	 * @param rb
+	 *            The {@link ResponseBuilder} to complete.
 	 * @param login
 	 *            User login used to match the hash.
 	 * @param hash
 	 *            The cookie value also stored in data base.
-	 * @return the {@link Response} including cookie value. Same object than the
-	 *         original parameter.
+	 * @return the {@link ResponseBuilder} including cookie value. Same object
+	 *         than the original parameter.
 	 */
-	public ResponseBuilder addCookie(final ResponseBuilder response, final String login, final String hash) {
+	public ResponseBuilder addCookie(final ResponseBuilder rb, final String login, final String hash) {
 		if (hash != null) {
 			// There is a preference, add it to a cookie
 			final Date expire = new Date(System.currentTimeMillis() + COOKIE_AGE * DateUtils.MILLIS_PER_SECOND);
 			final NewCookie cookieHash = new NewCookie(PREFERRED_COOKIE_HASH, login + "|" + hash, "/", null,
 					Cookie.DEFAULT_VERSION, null, COOKIE_AGE, expire, true, true);
-			response.cookie(cookieHash);
+			rb.cookie(cookieHash);
 		}
-		return response;
+		return rb;
 	}
 
 	/**
@@ -243,9 +245,9 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	}
 
 	@Override
-	public void accept(final ResponseBuilder response, final Authentication authentication) {
+	public void accept(final ResponseBuilder rb, final Authentication authentication) {
 		// Also return the redirect cookie preference
-		buildCookieResponse(authentication.getName()).header("X-Real-User", authentication.getName()).build();
+		buildCookieResponse(rb, authentication.getName()).header("X-Real-User", authentication.getName());
 	}
 
 	@Override

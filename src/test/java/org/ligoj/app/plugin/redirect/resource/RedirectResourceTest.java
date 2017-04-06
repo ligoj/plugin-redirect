@@ -12,9 +12,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.ligoj.app.AbstractAppTest;
+import org.ligoj.app.plugin.id.resource.CompanyResource;
 import org.ligoj.bootstrap.dao.system.SystemUserSettingRepository;
 import org.ligoj.bootstrap.model.system.SystemConfiguration;
 import org.ligoj.bootstrap.model.system.SystemUserSetting;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -196,6 +198,10 @@ public class RedirectResourceTest extends AbstractAppTest {
 	@Test
 	public void redirectToHomeExternal() throws URISyntaxException {
 		initSpringSecurityContext("fdoe2");
+		final RedirectResource resource = new RedirectResource();
+		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
+		resource.companyResource = Mockito.mock(CompanyResource.class);
+		
 		final Response response = resource.redirectToHome().build();
 		Assert.assertEquals(302, response.getStatus());
 		Assert.assertEquals("http://localhost:8081/external", response.getHeaderString("location"));
