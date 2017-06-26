@@ -17,9 +17,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.CharUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
+import org.apache.commons.text.RandomStringGenerator;
 import org.ligoj.app.api.FeaturePlugin;
 import org.ligoj.app.iam.IAuthenticationContributor;
 import org.ligoj.app.plugin.id.resource.CompanyResource;
@@ -50,6 +51,18 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	 */
 	private static final int COOKIE_AGE = (int) (DateUtils.MILLIS_PER_DAY / DateUtils.MILLIS_PER_SECOND * 365);
 
+	public static final String PREFERRED_URL = "preferred-url";
+
+	public static final String PREFERRED_HASH = "preferred-hash";
+
+	public static final String PREFERRED_COOKIE_HASH = "ligoj-preferred-hash";
+
+	/**
+	 * Az09 string generator.
+	 */
+	private static RandomStringGenerator GENERATOR = new RandomStringGenerator.Builder()
+			.filteredBy(c -> CharUtils.isAsciiAlphanumeric(Character.toChars(c)[0])).build();
+
 	@Autowired
 	private SecurityHelper securityHelper;
 
@@ -65,12 +78,6 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	@Autowired
 	protected CompanyResource companyResource;
 
-	public static final String PREFERRED_URL = "preferred-url";
-
-	public static final String PREFERRED_HASH = "preferred-hash";
-
-	public static final String PREFERRED_COOKIE_HASH = "ligoj-preferred-hash";
-
 	/**
 	 * Handle redirect request using cookie (checked, and updated), and the
 	 * stored preferred URL.
@@ -80,8 +87,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	 * @return the computed redirect URL.
 	 */
 	@GET
-	public Response handleRedirect(@CookieParam(PREFERRED_COOKIE_HASH) final String cookieHash)
-			throws URISyntaxException {
+	public Response handleRedirect(@CookieParam(PREFERRED_COOKIE_HASH) final String cookieHash) throws URISyntaxException {
 		// Check the user is authenticated or not
 		final String user = securityHelper.getLogin();
 
@@ -93,8 +99,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 		// Authenticated user, use preferred URL if defined, and also republish
 		// the hash value
 		final Map<String, Object> settings = userSettingResource.findAll(user);
-		return addCookie(redirect((String) settings.get(PREFERRED_URL)), user, (String) settings.get(PREFERRED_HASH))
-				.build();
+		return addCookie(redirect((String) settings.get(PREFERRED_URL)), user, (String) settings.get(PREFERRED_HASH)).build();
 	}
 
 	/**
@@ -153,7 +158,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 			setting = new SystemUserSetting();
 			setting.setLogin(SecurityContextHolder.getContext().getAuthentication().getName());
 			setting.setName(PREFERRED_HASH);
-			setting.setValue(RandomStringUtils.randomAlphanumeric(100));
+			setting.setValue(GENERATOR.generate(100));
 			repository.saveAndFlush(setting);
 		}
 
@@ -192,8 +197,8 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 		if (hash != null) {
 			// There is a preference, add it to a cookie
 			final Date expire = new Date(System.currentTimeMillis() + COOKIE_AGE * DateUtils.MILLIS_PER_SECOND);
-			final NewCookie cookieHash = new NewCookie(PREFERRED_COOKIE_HASH, login + "|" + hash, "/", null,
-					Cookie.DEFAULT_VERSION, null, COOKIE_AGE, expire, true, true);
+			final NewCookie cookieHash = new NewCookie(PREFERRED_COOKIE_HASH, login + "|" + hash, "/", null, Cookie.DEFAULT_VERSION, null,
+					COOKIE_AGE, expire, true, true);
 			rb.cookie(cookieHash);
 		}
 		return rb;
