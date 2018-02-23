@@ -37,8 +37,7 @@ import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Handle redirect request with a redirect either to login page, either the
- * preferred page of requesting user.<br>
+ * Handle redirect request with a redirect either to login page, either the preferred page of requesting user.<br>
  */
 @Path("redirect")
 @Service
@@ -60,7 +59,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	/**
 	 * Az09 string generator.
 	 */
-	private static RandomStringGenerator GENERATOR = new RandomStringGenerator.Builder()
+	private static final RandomStringGenerator GENERATOR = new RandomStringGenerator.Builder()
 			.filteredBy(c -> CharUtils.isAsciiAlphanumeric(Character.toChars(c)[0])).build();
 
 	@Autowired
@@ -79,15 +78,15 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	protected CompanyResource companyResource;
 
 	/**
-	 * Handle redirect request using cookie (checked, and updated), and the
-	 * stored preferred URL.
+	 * Handle redirect request using cookie (checked, and updated), and the stored preferred URL.
 	 * 
 	 * @param cookieHash
 	 *            the optional stored cookie URL.
 	 * @return the computed redirect URL.
 	 */
 	@GET
-	public Response handleRedirect(@CookieParam(PREFERRED_COOKIE_HASH) final String cookieHash) throws URISyntaxException {
+	public Response handleRedirect(@CookieParam(PREFERRED_COOKIE_HASH) final String cookieHash)
+			throws URISyntaxException {
 		// Check the user is authenticated or not
 		final String user = securityHelper.getLogin();
 
@@ -99,12 +98,12 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 		// Authenticated user, use preferred URL if defined, and also republish
 		// the hash value
 		final Map<String, Object> settings = userSettingResource.findAll(user);
-		return addCookie(redirect((String) settings.get(PREFERRED_URL)), user, (String) settings.get(PREFERRED_HASH)).build();
+		return addCookie(redirect((String) settings.get(PREFERRED_URL)), user, (String) settings.get(PREFERRED_HASH))
+				.build();
 	}
 
 	/**
-	 * Extract the user and the hash from the cookie value, then check the match
-	 * and retrieve the associated URL.
+	 * Extract the user and the hash from the cookie value, then check the match and retrieve the associated URL.
 	 */
 	private String getUrlFromCookie(final String cookieHash) {
 		final String[] cookieData = StringUtils.split(StringUtils.defaultIfBlank(cookieHash, ""), '|');
@@ -119,8 +118,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	}
 
 	/**
-	 * Check the hash for the given user against the stored value from the data
-	 * base.
+	 * Check the hash for the given user against the stored value from the data base.
 	 */
 	private String checkUrl(final String user, final String hashData, final Map<String, Object> settings) {
 		if (settings.containsKey(PREFERRED_HASH)) {
@@ -173,8 +171,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	 *            The {@link ResponseBuilder} to complete.
 	 * @param login
 	 *            related user.
-	 * @return the {@link ResponseBuilder} including the stored cookie value
-	 *         from the data base.
+	 * @return the {@link ResponseBuilder} including the stored cookie value from the data base.
 	 */
 	private ResponseBuilder buildCookieResponse(final ResponseBuilder rb, final String login) {
 		// Return the stored hash as cookie
@@ -190,15 +187,14 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	 *            User login used to match the hash.
 	 * @param hash
 	 *            The cookie value also stored in data base.
-	 * @return the {@link ResponseBuilder} including cookie value. Same object
-	 *         than the original parameter.
+	 * @return the {@link ResponseBuilder} including cookie value. Same object than the original parameter.
 	 */
 	public ResponseBuilder addCookie(final ResponseBuilder rb, final String login, final String hash) {
 		if (hash != null) {
 			// There is a preference, add it to a cookie
 			final Date expire = new Date(System.currentTimeMillis() + COOKIE_AGE * DateUtils.MILLIS_PER_SECOND);
-			final NewCookie cookieHash = new NewCookie(PREFERRED_COOKIE_HASH, login + "|" + hash, "/", null, Cookie.DEFAULT_VERSION, null,
-					COOKIE_AGE, expire, true, true);
+			final NewCookie cookieHash = new NewCookie(PREFERRED_COOKIE_HASH, login + "|" + hash, "/", null,
+					Cookie.DEFAULT_VERSION, null, COOKIE_AGE, expire, true, true);
 			rb.cookie(cookieHash);
 		}
 		return rb;
