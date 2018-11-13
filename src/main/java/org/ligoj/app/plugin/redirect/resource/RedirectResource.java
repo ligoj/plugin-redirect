@@ -21,9 +21,9 @@ import org.apache.commons.lang3.CharUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.text.RandomStringGenerator;
-import org.ligoj.app.api.FeaturePlugin;
 import org.ligoj.app.iam.IAuthenticationContributor;
 import org.ligoj.app.plugin.id.resource.CompanyResource;
+import org.ligoj.bootstrap.core.plugin.FeaturePlugin;
 import org.ligoj.bootstrap.core.security.SecurityHelper;
 import org.ligoj.bootstrap.dao.system.SystemUserSettingRepository;
 import org.ligoj.bootstrap.model.system.SystemUserSetting;
@@ -79,7 +79,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 
 	/**
 	 * Handle redirect request using cookie (checked, and updated), and the stored preferred URL.
-	 * 
+	 *
 	 * @param cookieHash
 	 *            the optional stored cookie URL.
 	 * @return the computed redirect URL.
@@ -136,7 +136,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 
 	/**
 	 * Create a setting for current user, and assign as a cookie the hash value.
-	 * 
+	 *
 	 * @param newPreferred
 	 *            The new preferred URL.
 	 * @return The response containing the cookie.
@@ -166,7 +166,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 
 	/**
 	 * Return the stored hash as cookie for the current authenticated used.
-	 * 
+	 *
 	 * @param rb
 	 *            The {@link ResponseBuilder} to complete.
 	 * @param login
@@ -180,7 +180,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 
 	/**
 	 * Return the generated hash as cookie
-	 * 
+	 *
 	 * @param rb
 	 *            The {@link ResponseBuilder} to complete.
 	 * @param login
