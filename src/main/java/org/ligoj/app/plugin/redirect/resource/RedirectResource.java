@@ -1,3 +1,6 @@
+/*
+ * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
+ */
 package org.ligoj.app.plugin.redirect.resource;
 
 import java.net.URI;
@@ -37,7 +40,8 @@ import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Handle redirect request with a redirect either to login page, either the preferred page of requesting user.<br>
+ * Handle redirect request with a redirect either to login page, either the
+ * preferred page of requesting user.<br>
  */
 @Path("redirect")
 @Service
@@ -50,11 +54,11 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	 */
 	private static final int COOKIE_AGE = (int) (DateUtils.MILLIS_PER_DAY / DateUtils.MILLIS_PER_SECOND * 365);
 
-	public static final String PREFERRED_URL = "preferred-url";
+	protected static final String PREFERRED_URL = "preferred-url";
 
-	public static final String PREFERRED_HASH = "preferred-hash";
+	protected static final String PREFERRED_HASH = "preferred-hash";
 
-	public static final String PREFERRED_COOKIE_HASH = "ligoj-preferred-hash";
+	protected static final String PREFERRED_COOKIE_HASH = "ligoj-preferred-hash";
 
 	/**
 	 * Az09 string generator.
@@ -78,11 +82,12 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	protected CompanyResource companyResource;
 
 	/**
-	 * Handle redirect request using cookie (checked, and updated), and the stored preferred URL.
+	 * Handle redirect request using cookie (checked, and updated), and the stored
+	 * preferred URL.
 	 *
-	 * @param cookieHash
-	 *            the optional stored cookie URL.
+	 * @param cookieHash the optional stored cookie URL.
 	 * @return the computed redirect URL.
+	 * @throws URISyntaxException When redirect URL is malformed.
 	 */
 	@GET
 	public Response handleRedirect(@CookieParam(PREFERRED_COOKIE_HASH) final String cookieHash)
@@ -103,7 +108,8 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	}
 
 	/**
-	 * Extract the user and the hash from the cookie value, then check the match and retrieve the associated URL.
+	 * Extract the user and the hash from the cookie value, then check the match and
+	 * retrieve the associated URL.
 	 */
 	private String getUrlFromCookie(final String cookieHash) {
 		final String[] cookieData = StringUtils.split(StringUtils.defaultIfBlank(cookieHash, ""), '|');
@@ -118,7 +124,8 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	}
 
 	/**
-	 * Check the hash for the given user against the stored value from the data base.
+	 * Check the hash for the given user against the stored value from the data
+	 * base.
 	 */
 	private String checkUrl(final String user, final String hashData, final Map<String, Object> settings) {
 		if (settings.containsKey(PREFERRED_HASH)) {
@@ -137,8 +144,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	/**
 	 * Create a setting for current user, and assign as a cookie the hash value.
 	 *
-	 * @param newPreferred
-	 *            The new preferred URL.
+	 * @param newPreferred The new preferred URL.
 	 * @return The response containing the cookie.
 	 */
 	@POST
@@ -167,11 +173,10 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	/**
 	 * Return the stored hash as cookie for the current authenticated used.
 	 *
-	 * @param rb
-	 *            The {@link ResponseBuilder} to complete.
-	 * @param login
-	 *            related user.
-	 * @return the {@link ResponseBuilder} including the stored cookie value from the data base.
+	 * @param rb    The {@link ResponseBuilder} to complete.
+	 * @param login related user.
+	 * @return the {@link ResponseBuilder} including the stored cookie value from
+	 *         the data base.
 	 */
 	private ResponseBuilder buildCookieResponse(final ResponseBuilder rb, final String login) {
 		// Return the stored hash as cookie
@@ -181,13 +186,11 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	/**
 	 * Return the generated hash as cookie
 	 *
-	 * @param rb
-	 *            The {@link ResponseBuilder} to complete.
-	 * @param login
-	 *            User login used to match the hash.
-	 * @param hash
-	 *            The cookie value also stored in data base.
-	 * @return the {@link ResponseBuilder} including cookie value. Same object than the original parameter.
+	 * @param rb    The {@link ResponseBuilder} to complete.
+	 * @param login User login used to match the hash.
+	 * @param hash  The cookie value also stored in data base.
+	 * @return the {@link ResponseBuilder} including cookie value. Same object than
+	 *         the original parameter.
 	 */
 	public ResponseBuilder addCookie(final ResponseBuilder rb, final String login, final String hash) {
 		if (hash != null) {
@@ -219,6 +222,9 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 
 	/**
 	 * Redirect to main home page.
+	 * 
+	 * @return The redirect response.
+	 * @throws URISyntaxException When redirect URL is malformed.
 	 */
 	protected ResponseBuilder redirectToHome() throws URISyntaxException {
 		final String user = securityHelper.getLogin();

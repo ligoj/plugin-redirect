@@ -1,3 +1,6 @@
+/*
+ * Licensed under MIT (https://github.com/ligoj/ligoj/blob/master/LICENSE)
+ */
 package org.ligoj.app.plugin.redirect.resource;
 
 import java.io.IOException;
@@ -40,12 +43,12 @@ public class RedirectResourceTest extends AbstractAppTest {
 	private SystemUserSettingRepository userSettingRepository;
 
 	@BeforeEach
-	public void prepareConfiguration() throws IOException {
+	void prepareConfiguration() throws IOException {
 		persistEntities("csv", SystemConfiguration.class);
 	}
 
 	@Test
-	public void handleRedirectAnonymousNoCookie() throws URISyntaxException {
+	void handleRedirectAnonymousNoCookie() throws URISyntaxException {
 		SecurityContextHolder.clearContext();
 
 		final Response response = resource.handleRedirect(null);
@@ -54,7 +57,7 @@ public class RedirectResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void handleRedirectAnonymousCookieNoSetting() throws URISyntaxException {
+	void handleRedirectAnonymousCookieNoSetting() throws URISyntaxException {
 		SecurityContextHolder.clearContext();
 
 		final Response response = resource.handleRedirect(DEFAULT_USER + "|hash");
@@ -63,7 +66,7 @@ public class RedirectResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void handleRedirectAnonymousCookieNotMatch() throws URISyntaxException {
+	void handleRedirectAnonymousCookieNotMatch() throws URISyntaxException {
 		SecurityContextHolder.clearContext();
 
 		final SystemUserSetting setting = new SystemUserSetting();
@@ -80,7 +83,7 @@ public class RedirectResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void handleRedirectAnonymous() throws URISyntaxException {
+	void handleRedirectAnonymous() throws URISyntaxException {
 		SecurityContextHolder.clearContext();
 
 		final SystemUserSetting setting = new SystemUserSetting();
@@ -102,7 +105,7 @@ public class RedirectResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void handleRedirect() throws URISyntaxException {
+	void handleRedirect() throws URISyntaxException {
 		final SystemUserSetting setting = new SystemUserSetting();
 		setting.setLogin(DEFAULT_USER);
 		setting.setName(RedirectResource.PREFERRED_HASH);
@@ -123,7 +126,7 @@ public class RedirectResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void handleRedirectNoCookie() throws URISyntaxException {
+	void handleRedirectNoCookie() throws URISyntaxException {
 		final SystemUserSetting setting = new SystemUserSetting();
 		setting.setLogin(DEFAULT_USER);
 		setting.setName(RedirectResource.PREFERRED_HASH);
@@ -144,7 +147,7 @@ public class RedirectResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void buildCookieResponseNoHash() {
+	void buildCookieResponseNoHash() {
 		final ResponseBuilder rb = Response.noContent();
 		resource.accept(rb, new UsernamePasswordAuthenticationToken("any", "n/a"));
 		final Response response = rb.build();
@@ -153,7 +156,7 @@ public class RedirectResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void buildCookieResponse() {
+	void buildCookieResponse() {
 		final SystemUserSetting setting = new SystemUserSetting();
 		setting.setLogin(DEFAULT_USER);
 		setting.setName(RedirectResource.PREFERRED_HASH);
@@ -169,7 +172,7 @@ public class RedirectResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void redirectToHomeAnonymous() throws URISyntaxException {
+	void redirectToHomeAnonymous() throws URISyntaxException {
 		SecurityContextHolder.clearContext();
 		final Response response = resource.redirectToHome().build();
 		Assertions.assertEquals(302, response.getStatus());
@@ -180,7 +183,7 @@ public class RedirectResourceTest extends AbstractAppTest {
 	 * Special Spring-security anonymous user.
 	 */
 	@Test
-	public void redirectToHomeAnonymous2() throws URISyntaxException {
+	void redirectToHomeAnonymous2() throws URISyntaxException {
 		initSpringSecurityContext("anonymousUser");
 		final Response response = resource.redirectToHome().build();
 		Assertions.assertEquals(302, response.getStatus());
@@ -188,7 +191,7 @@ public class RedirectResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void redirectToHomeInternal() throws URISyntaxException {
+	void redirectToHomeInternal() throws URISyntaxException {
 		initSpringSecurityContext("fdaugan");
 		final Response response = resource.redirectToHome().build();
 		Assertions.assertEquals(302, response.getStatus());
@@ -196,7 +199,7 @@ public class RedirectResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void redirectToHomeExternal() throws URISyntaxException {
+	void redirectToHomeExternal() throws URISyntaxException {
 		initSpringSecurityContext("fdoe2");
 		final RedirectResource resource = new RedirectResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
@@ -208,7 +211,7 @@ public class RedirectResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void saveOrUpdate() throws URISyntaxException {
+	void saveOrUpdate() throws URISyntaxException {
 		Response response = resource.saveOrUpdate("http://localhost:1/any");
 		final String cookieValue = response.getCookies().get(RedirectResource.PREFERRED_COOKIE_HASH).getValue();
 		Assertions.assertTrue(cookieValue.startsWith(DEFAULT_USER + "|"));
@@ -253,7 +256,7 @@ public class RedirectResourceTest extends AbstractAppTest {
 	}
 
 	@Test
-	public void saveOrUpdateUpdate() throws URISyntaxException {
+	void saveOrUpdateUpdate() throws URISyntaxException {
 		final SystemUserSetting setting = new SystemUserSetting();
 		setting.setLogin(DEFAULT_USER);
 		setting.setName(RedirectResource.PREFERRED_HASH);
@@ -282,14 +285,14 @@ public class RedirectResourceTest extends AbstractAppTest {
 		Assertions.assertEquals("http://localhost:2/any", response.getHeaderString("location"));
 	}
 
-	public void saveOrUpdateNotCreated() {
+	void saveOrUpdateNotCreated() {
 		final Response response = resource.saveOrUpdate("http://localhost:2/any");
 		Assertions.assertNull(response.getCookies().get(RedirectResource.PREFERRED_COOKIE_HASH));
 		Assertions.assertNull(response.getHeaderString("location"));
 	}
 	
 	@Test
-	public void getKey() {
+	void getKey() {
 		Assertions.assertEquals("feature:redirect", resource.getKey());
 	}
 
