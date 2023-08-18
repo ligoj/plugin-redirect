@@ -6,9 +6,9 @@ package org.ligoj.app.plugin.redirect.resource;
 import java.io.IOException;
 import java.net.URISyntaxException;
 
-import javax.transaction.Transactional;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
