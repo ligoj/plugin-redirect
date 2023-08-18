@@ -124,8 +124,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	}
 
 	/**
-	 * Check the hash for the given user against the stored value from the data
-	 * base.
+	 * Check the hash for the given user against the stored value from the database.
 	 */
 	private String checkUrl(final String user, final String hashData, final Map<String, Object> settings) {
 		if (settings.containsKey(PREFERRED_HASH)) {
@@ -176,7 +175,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	 * @param rb    The {@link ResponseBuilder} to complete.
 	 * @param login related user.
 	 * @return the {@link ResponseBuilder} including the stored cookie value from
-	 *         the data base.
+	 *         the database.
 	 */
 	private ResponseBuilder buildCookieResponse(final ResponseBuilder rb, final String login) {
 		// Return the stored hash as cookie
@@ -188,7 +187,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	 *
 	 * @param rb    The {@link ResponseBuilder} to complete.
 	 * @param login User login used to match the hash.
-	 * @param hash  The cookie value also stored in data base.
+	 * @param hash  The cookie value also stored in database.
 	 * @return the {@link ResponseBuilder} including cookie value. Same object than
 	 *         the original parameter.
 	 */
@@ -234,7 +233,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 		}
 
 		// Guess the company of this user
-		if (companyResource.isUserInternalCommpany()) {
+		if (companyResource.isUserInternalCompany()) {
 			// Internal user, redirect to the default URL of corporate user
 			return redirectToUrl(configuration.get("redirect.internal.home"));
 		}
