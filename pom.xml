@@ -9,7 +9,7 @@
 
 	<groupId>org.ligoj.plugin</groupId>
 	<artifactId>plugin-redirect</artifactId>
-	<version>1.0.2</version>
+	<version>1.0.3-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Ligoj - Plugin Redirect</name>
 	<description>Plugin to redirect incoming request to a favorite/default URL. Useful to handle welcome page or failsafe page.</description>
