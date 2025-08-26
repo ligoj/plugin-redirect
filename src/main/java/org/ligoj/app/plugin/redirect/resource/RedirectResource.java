@@ -3,23 +3,13 @@
  */
 package org.ligoj.app.plugin.redirect.resource;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Date;
-import java.util.Map;
-
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.CookieParam;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.core.Cookie;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.ResponseBuilder;
 import jakarta.ws.rs.core.Response.Status;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.CharUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -37,7 +27,10 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import lombok.extern.slf4j.Slf4j;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Date;
+import java.util.Map;
 
 /**
  * Handle redirect request with a redirect either to login page, either the
@@ -64,7 +57,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	 * Az09 string generator.
 	 */
 	private static final RandomStringGenerator GENERATOR = new RandomStringGenerator.Builder()
-			.filteredBy(c -> CharUtils.isAsciiAlphanumeric(Character.toChars(c)[0])).build();
+			.filteredBy(c -> CharUtils.isAsciiAlphanumeric(Character.toChars(c)[0])).get();
 
 	@Autowired
 	private SecurityHelper securityHelper;
@@ -175,7 +168,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	 * @param rb    The {@link ResponseBuilder} to complete.
 	 * @param login related user.
 	 * @return the {@link ResponseBuilder} including the stored cookie value from
-	 *         the database.
+	 * the database.
 	 */
 	private ResponseBuilder buildCookieResponse(final ResponseBuilder rb, final String login) {
 		// Return the stored hash as cookie
@@ -189,14 +182,21 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	 * @param login User login used to match the hash.
 	 * @param hash  The cookie value also stored in database.
 	 * @return the {@link ResponseBuilder} including cookie value. Same object than
-	 *         the original parameter.
+	 * the original parameter.
 	 */
 	public ResponseBuilder addCookie(final ResponseBuilder rb, final String login, final String hash) {
 		if (hash != null) {
 			// There is a preference, add it to a cookie
 			final Date expire = new Date(System.currentTimeMillis() + COOKIE_AGE * DateUtils.MILLIS_PER_SECOND);
-			final NewCookie cookieHash = new NewCookie(PREFERRED_COOKIE_HASH, login + "|" + hash, "/", null,
-					Cookie.DEFAULT_VERSION, null, COOKIE_AGE, expire, true, true);
+			final NewCookie cookieHash =
+					new NewCookie.Builder(PREFERRED_COOKIE_HASH)
+							.value(login + "|" + hash)
+							.path("/")
+							.maxAge(COOKIE_AGE)
+							.expiry(expire)
+							.secure(true)
+							.httpOnly(true)
+							.build();
 			rb.cookie(cookieHash);
 		}
 		return rb;
@@ -221,7 +221,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 
 	/**
 	 * Redirect to main home page.
-	 * 
+	 *
 	 * @return The redirect response.
 	 * @throws URISyntaxException When redirect URL is malformed.
 	 */
