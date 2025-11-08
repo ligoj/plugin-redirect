@@ -86,16 +86,15 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	public Response handleRedirect(@CookieParam(PREFERRED_COOKIE_HASH) final String cookieHash)
 			throws URISyntaxException {
 		// Check the user is authenticated or not
-		final String user = securityHelper.getLogin();
+		final var user = securityHelper.getLogin();
 
 		if (isAnonymous(user)) {
-			// Anonymous request, use the cookie hash to retrieve the user's
-			// preferred URL
+			// Anonymous request, use the cookie hash to retrieve the user's preferred URL
 			return redirect(getUrlFromCookie(cookieHash)).build();
 		}
 		// Authenticated user, use preferred URL if defined, and also republish
 		// the hash value
-		final Map<String, Object> settings = userSettingResource.findAll(user);
+		final var settings = userSettingResource.findAll(user);
 		return addCookie(redirect((String) settings.get(PREFERRED_URL)), user, (String) settings.get(PREFERRED_HASH))
 				.build();
 	}
@@ -105,10 +104,10 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	 * retrieve the associated URL.
 	 */
 	private String getUrlFromCookie(final String cookieHash) {
-		final String[] cookieData = StringUtils.split(StringUtils.defaultIfBlank(cookieHash, ""), '|');
+		final var cookieData = StringUtils.split(StringUtils.defaultIfBlank(cookieHash, ""), '|');
 		if (cookieData.length == 2) {
 			// It's a valid cookie syntax
-			final String user = cookieData[0];
+			final var user = cookieData[0];
 			return checkUrl(user, cookieData[1], userSettingResource.findAll(user));
 		}
 
@@ -147,7 +146,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 		userSettingResource.saveOrUpdate(PREFERRED_URL, newPreferred);
 
 		// Check the current hash
-		SystemUserSetting setting = repository.findByLoginAndName(securityHelper.getLogin(), PREFERRED_HASH);
+		var setting = repository.findByLoginAndName(securityHelper.getLogin(), PREFERRED_HASH);
 		if (setting == null) {
 
 			// No hash generated for this user, create a new one
@@ -187,8 +186,8 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	public ResponseBuilder addCookie(final ResponseBuilder rb, final String login, final String hash) {
 		if (hash != null) {
 			// There is a preference, add it to a cookie
-			final Date expire = new Date(System.currentTimeMillis() + COOKIE_AGE * DateUtils.MILLIS_PER_SECOND);
-			final NewCookie cookieHash =
+			final var expire = new Date(System.currentTimeMillis() + COOKIE_AGE * DateUtils.MILLIS_PER_SECOND);
+			final var cookieHash =
 					new NewCookie.Builder(PREFERRED_COOKIE_HASH)
 							.value(login + "|" + hash)
 							.path("/")
@@ -226,7 +225,7 @@ public class RedirectResource implements IAuthenticationContributor, FeaturePlug
 	 * @throws URISyntaxException When redirect URL is malformed.
 	 */
 	protected ResponseBuilder redirectToHome() throws URISyntaxException {
-		final String user = securityHelper.getLogin();
+		final var user = securityHelper.getLogin();
 		if (isAnonymous(user)) {
 			// We know nothing about the user
 			return redirectToUrl(configuration.get("redirect.external.home"));
