@@ -3,13 +3,9 @@
  */
 package org.ligoj.app.plugin.redirect.resource;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.ResponseBuilder;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,13 +15,17 @@ import org.ligoj.app.plugin.id.resource.CompanyResource;
 import org.ligoj.bootstrap.dao.system.SystemUserSettingRepository;
 import org.ligoj.bootstrap.model.system.SystemConfiguration;
 import org.ligoj.bootstrap.model.system.SystemUserSetting;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+
+import static org.mockito.Mockito.mock;
 
 /**
  * Test class of {@link RedirectResource}
@@ -203,7 +203,7 @@ public class RedirectResourceTest extends AbstractAppTest {
 		initSpringSecurityContext("fdoe2");
 		final RedirectResource resource = new RedirectResource();
 		applicationContext.getAutowireCapableBeanFactory().autowireBean(resource);
-		resource.companyResource = Mockito.mock(CompanyResource.class);
+		resource.companyResource = mock(CompanyResource.class);
 		
 		final Response response = resource.redirectToHome().build();
 		Assertions.assertEquals(302, response.getStatus());
